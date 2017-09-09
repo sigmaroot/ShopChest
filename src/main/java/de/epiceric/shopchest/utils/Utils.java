@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.*;
 
 public class Utils {
 
@@ -410,13 +411,38 @@ public class Utils {
      */
     public static ItemStack decode(String string) {
         YamlConfiguration config = new YamlConfiguration();
+        String encodedString;
+        ItemStack resultStack;
         try {
-            config.loadFromString(new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8));
+            encodedString = new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8);
+            config.loadFromString(encodedString);
         } catch (IllegalArgumentException | InvalidConfigurationException e) {
             e.printStackTrace();
             return null;
         }
-        return config.getItemStack("i", null);
+        resultStack = config.getItemStack("i", null);
+        if ((resultStack.getAmount() <= 0) || (resultStack.getType() == Material.AIR)) {
+            Pattern p = Pattern.compile("amount:\\s\\d+");
+            Matcher m = p.matcher(encodedString);
+            if (m.find()) {
+                String matchedString = m.group();
+                Pattern pMatched = Pattern.compile("\\d+");
+                Matcher mMatched = pMatched.matcher(matchedString);
+                if (mMatched.find()) {
+                    int realAmount = Integer.parseInt(mMatched.group());
+                    encodedString = encodedString.replace(matchedString, "amount: 1");
+                    try {
+                        config.loadFromString(encodedString);
+                    } catch (IllegalArgumentException | InvalidConfigurationException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                    resultStack = config.getItemStack("i", null);
+                    resultStack.setAmount(realAmount);
+                }
+            }
+        }
+        return resultStack;
     }
 
 
