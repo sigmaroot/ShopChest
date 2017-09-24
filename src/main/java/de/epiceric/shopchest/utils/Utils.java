@@ -421,27 +421,27 @@ public class Utils {
             return null;
         }
         resultStack = config.getItemStack("i", null);
-        if ((resultStack.getAmount() <= 0) || (resultStack.getType() == Material.AIR)) {
-            Pattern p = Pattern.compile("amount:\\s\\d+");
-            Matcher m = p.matcher(encodedString);
-            if (m.find()) {
-                String matchedString = m.group();
-                Pattern pMatched = Pattern.compile("\\d+");
-                Matcher mMatched = pMatched.matcher(matchedString);
-                if (mMatched.find()) {
-                    int realAmount = Integer.parseInt(mMatched.group());
-                    encodedString = encodedString.replace(matchedString, "amount: 1");
-                    try {
-                        config.loadFromString(encodedString);
-                    } catch (IllegalArgumentException | InvalidConfigurationException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                    resultStack = config.getItemStack("i", null);
-                    resultStack.setAmount(realAmount);
+        // if ((resultStack.getAmount() <= 0) || (resultStack.getType() == Material.AIR)) {
+        Pattern p = Pattern.compile("amount:\\s\\d+");
+        Matcher m = p.matcher(encodedString);
+        if (m.find()) {
+            String matchedString = m.group();
+            Pattern pMatched = Pattern.compile("\\d+");
+            Matcher mMatched = pMatched.matcher(matchedString);
+            if (mMatched.find()) {
+                int realAmount = Integer.parseInt(mMatched.group());
+                encodedString = encodedString.replace(matchedString, "amount: 1");
+                try {
+                    config.loadFromString(encodedString);
+                } catch (IllegalArgumentException | InvalidConfigurationException e) {
+                    e.printStackTrace();
+                    return null;
                 }
+                resultStack = config.getItemStack("i", null);
+                resultStack.setAmount(realAmount);
             }
         }
+        // }
         return resultStack;
     }
 
