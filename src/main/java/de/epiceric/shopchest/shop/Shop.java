@@ -8,6 +8,7 @@ import de.epiceric.shopchest.exceptions.ChestNotFoundException;
 import de.epiceric.shopchest.exceptions.NotEnoughSpaceException;
 import de.epiceric.shopchest.language.LanguageUtils;
 import de.epiceric.shopchest.nms.Hologram;
+import de.epiceric.shopchest.utils.AdvancedItemStack;
 import de.epiceric.shopchest.utils.ItemUtils;
 import de.epiceric.shopchest.utils.Utils;
 import org.bukkit.Location;
@@ -32,7 +33,7 @@ public class Shop {
 
     private final ShopChest plugin;
     private final OfflinePlayer vendor;
-    private final ItemStack product;
+    private final AdvancedItemStack product;
     private final Location location;
     private final double buyPrice;
     private final double sellPrice;
@@ -44,7 +45,7 @@ public class Shop {
     private Hologram hologram;
     private ShopItem item;
 
-    public Shop(int id, ShopChest plugin, OfflinePlayer vendor, ItemStack product, Location location, double buyPrice, double sellPrice, ShopType shopType) {
+    public Shop(int id, ShopChest plugin, OfflinePlayer vendor, AdvancedItemStack product, Location location, double buyPrice, double sellPrice, ShopType shopType) {
         this.id = id;
         this.plugin = plugin;
         this.vendor = vendor;
@@ -56,7 +57,7 @@ public class Shop {
         this.config = plugin.getShopChestConfig();
     }
 
-    public Shop(ShopChest plugin, OfflinePlayer vendor, ItemStack product, Location location, double buyPrice, double sellPrice, ShopType shopType) {
+    public Shop(ShopChest plugin, OfflinePlayer vendor, AdvancedItemStack product, Location location, double buyPrice, double sellPrice, ShopType shopType) {
         this(-1, plugin, vendor, product, location, buyPrice, sellPrice, shopType);
     }
 
@@ -149,7 +150,7 @@ public class Shop {
             ItemStack itemStack;
 
             itemLocation = new Location(location.getWorld(), hologram.getLocation().getX(), location.getY() + 0.9, hologram.getLocation().getZ());
-            itemStack = product.clone();
+            itemStack = product.getItemStack().clone();
             itemStack.setAmount(1);
 
             item = new ShopItem(plugin, itemStack, itemLocation);
@@ -212,36 +213,36 @@ public class Shop {
         Map<HologramFormat.Requirement, Object> requirements = new EnumMap<>(HologramFormat.Requirement.class);
         requirements.put(HologramFormat.Requirement.VENDOR, getVendor().getName());
         requirements.put(HologramFormat.Requirement.AMOUNT, getProduct().getAmount());
-        requirements.put(HologramFormat.Requirement.ITEM_TYPE, getProduct().getType() + (getProduct().getDurability() > 0 ? ":" + getProduct().getDurability() : ""));
-        requirements.put(HologramFormat.Requirement.ITEM_NAME, getProduct().hasItemMeta() ? getProduct().getItemMeta().getDisplayName() : null);
-        requirements.put(HologramFormat.Requirement.HAS_ENCHANTMENT, !LanguageUtils.getEnchantmentString(ItemUtils.getEnchantments(getProduct())).isEmpty());
+        requirements.put(HologramFormat.Requirement.ITEM_TYPE, getProduct().getItemStack().getType() + (getProduct().getItemStack().getDurability() > 0 ? ":" + getProduct().getItemStack().getDurability() : ""));
+        requirements.put(HologramFormat.Requirement.ITEM_NAME, getProduct().getItemStack().hasItemMeta() ? getProduct().getItemStack().getItemMeta().getDisplayName() : null);
+        requirements.put(HologramFormat.Requirement.HAS_ENCHANTMENT, !LanguageUtils.getEnchantmentString(ItemUtils.getEnchantments(getProduct().getItemStack())).isEmpty());
         requirements.put(HologramFormat.Requirement.BUY_PRICE, getBuyPrice());
         requirements.put(HologramFormat.Requirement.SELL_PRICE, getSellPrice());
-        requirements.put(HologramFormat.Requirement.HAS_POTION_EFFECT, ItemUtils.getPotionEffect(getProduct()) != null);
-        requirements.put(HologramFormat.Requirement.IS_MUSIC_DISC, ItemUtils.isMusicDisc(getProduct()));
-        requirements.put(HologramFormat.Requirement.IS_POTION_EXTENDED, ItemUtils.isExtendedPotion(getProduct()));
-        requirements.put(HologramFormat.Requirement.IS_WRITTEN_BOOK, ItemUtils.getBookGeneration(getProduct()) != null);
+        requirements.put(HologramFormat.Requirement.HAS_POTION_EFFECT, ItemUtils.getPotionEffect(getProduct().getItemStack()) != null);
+        requirements.put(HologramFormat.Requirement.IS_MUSIC_DISC, ItemUtils.isMusicDisc(getProduct().getItemStack()));
+        requirements.put(HologramFormat.Requirement.IS_POTION_EXTENDED, ItemUtils.isExtendedPotion(getProduct().getItemStack()));
+        requirements.put(HologramFormat.Requirement.IS_WRITTEN_BOOK, ItemUtils.getBookGeneration(getProduct().getItemStack()) != null);
         requirements.put(HologramFormat.Requirement.ADMIN_SHOP, getShopType() == ShopType.ADMIN);
         requirements.put(HologramFormat.Requirement.NORMAL_SHOP, getShopType() == ShopType.NORMAL);
         requirements.put(HologramFormat.Requirement.IN_STOCK, Utils.getAmount(getInventoryHolder().getInventory(), getProduct()));
-        requirements.put(HologramFormat.Requirement.MAX_STACK, getProduct().getMaxStackSize());
+        requirements.put(HologramFormat.Requirement.MAX_STACK, getProduct().getItemStack().getMaxStackSize());
         requirements.put(HologramFormat.Requirement.CHEST_SPACE, Utils.getFreeSpaceForItem(getInventoryHolder().getInventory(), getProduct()));
-        requirements.put(HologramFormat.Requirement.DURABILITY, getProduct().getDurability());
+        requirements.put(HologramFormat.Requirement.DURABILITY, getProduct().getItemStack().getDurability());
 
         Map<Placeholder, Object> placeholders = new EnumMap<>(Placeholder.class);
         placeholders.put(Placeholder.VENDOR, getVendor().getName());
         placeholders.put(Placeholder.AMOUNT, getProduct().getAmount());
-        placeholders.put(Placeholder.ITEM_NAME, LanguageUtils.getItemName(getProduct()));
-        placeholders.put(Placeholder.ENCHANTMENT, LanguageUtils.getEnchantmentString(ItemUtils.getEnchantments(getProduct())));
+        placeholders.put(Placeholder.ITEM_NAME, LanguageUtils.getItemName(getProduct().getItemStack()));
+        placeholders.put(Placeholder.ENCHANTMENT, LanguageUtils.getEnchantmentString(ItemUtils.getEnchantments(getProduct().getItemStack())));
         placeholders.put(Placeholder.BUY_PRICE, getBuyPrice());
         placeholders.put(Placeholder.SELL_PRICE, getSellPrice());
-        placeholders.put(Placeholder.POTION_EFFECT, LanguageUtils.getPotionEffectName(getProduct()));
-        placeholders.put(Placeholder.MUSIC_TITLE, LanguageUtils.getMusicDiscName(getProduct().getType()));
-        placeholders.put(Placeholder.GENERATION, LanguageUtils.getBookGenerationName(ItemUtils.getBookGeneration(getProduct())));
+        placeholders.put(Placeholder.POTION_EFFECT, LanguageUtils.getPotionEffectName(getProduct().getItemStack()));
+        placeholders.put(Placeholder.MUSIC_TITLE, LanguageUtils.getMusicDiscName(getProduct().getItemStack().getType()));
+        placeholders.put(Placeholder.GENERATION, LanguageUtils.getBookGenerationName(ItemUtils.getBookGeneration(getProduct().getItemStack())));
         placeholders.put(Placeholder.STOCK, Utils.getAmount(getInventoryHolder().getInventory(), getProduct()));
-        placeholders.put(Placeholder.MAX_STACK, getProduct().getMaxStackSize());
+        placeholders.put(Placeholder.MAX_STACK, getProduct().getItemStack().getMaxStackSize());
         placeholders.put(Placeholder.CHEST_SPACE, Utils.getFreeSpaceForItem(getInventoryHolder().getInventory(), getProduct()));
-        placeholders.put(Placeholder.DURABILITY, getProduct().getDurability());
+        placeholders.put(Placeholder.DURABILITY, getProduct().getItemStack().getDurability());
 
         int lineCount = plugin.getHologramFormat().getLineCount();
 
@@ -356,7 +357,7 @@ public class Shop {
     /**
      * @return Product the shop sells (or buys)
      */
-    public ItemStack getProduct() {
+    public AdvancedItemStack getProduct() {
         return product;
     }
 

@@ -69,7 +69,15 @@ public class ShopUtils {
      * @return Copy of collection of all shops, may contain duplicates
      */
     public Collection<Shop> getShopsCopy() {
-        return new ArrayList<>(getShops());
+        Collection<Shop> result = new ArrayList<>();
+        try {
+            result = new ArrayList<>(getShops());
+        } catch (ConcurrentModificationException e) {
+            plugin.getLogger().severe("Failed to copy shops collection");
+            plugin.debug("Failed to copy shops collection");
+            plugin.debug(e);
+        }
+        return result;
     }
 
     /**
@@ -406,7 +414,9 @@ public class ShopUtils {
         double holoDistSqr = Math.pow(plugin.getShopChestConfig().maximal_distance, 2);
         double itemDistSqr = Math.pow(plugin.getShopChestConfig().maximal_item_distance, 2);
 
-        for (Shop shop : getShops()) {
+        for (Shop shop : getShopsCopy()) {
+            // Skip update if the shop doesn't exist anymore or has been modified
+            if (!getShops().contains(shop))  continue;
             if (p.getLocation().getWorld().getName().equals(shop.getLocation().getWorld().getName())) {
                 double distSqr = shop.getLocation().distanceSquared(p.getLocation());
 

@@ -6,6 +6,7 @@ import de.epiceric.shopchest.exceptions.WorldNotFoundException;
 import de.epiceric.shopchest.language.LanguageUtils;
 import de.epiceric.shopchest.shop.Shop;
 import de.epiceric.shopchest.shop.Shop.ShopType;
+import de.epiceric.shopchest.utils.AdvancedItemStack;
 import de.epiceric.shopchest.utils.Callback;
 import de.epiceric.shopchest.utils.Utils;
 import org.bukkit.Bukkit;
@@ -13,7 +14,6 @@ import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.sql.*;
@@ -154,6 +154,11 @@ public abstract class Database {
                     s4.executeUpdate(queryCreateTablePlayerLogout);
                     s4.close();
 
+                    // Clean up economy log
+                    if (plugin.getShopChestConfig().cleanup_ecomomy_log) {
+                        cleanUpEconomy(false);
+                    }
+
                     // Count entries in table "shops"
                     PreparedStatement ps = connection.prepareStatement("SELECT * FROM shops");
                     ResultSet rs2 = ps.executeQuery();
@@ -253,6 +258,9 @@ public abstract class Database {
         new BukkitRunnable() {
             @Override
             public void run() {
+                boolean broadcastOldFormat = false;
+                int convertCounter = 0;
+
                 PreparedStatement ps = null;
                 ResultSet rs = null;
 
@@ -287,13 +295,30 @@ public abstract class Database {
                         plugin.debug("Initializing new shop... (#" + id + ")");
 
                         OfflinePlayer vendor = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("vendor")));
-                        ItemStack product = Utils.decode(rs.getString("product"));
+                        AdvancedItemStack product = Utils.decode(rs.getString("product"));
                         double buyPrice = rs.getDouble("buyprice");
                         double sellPrice = rs.getDouble("sellprice");
                         ShopType shopType = ShopType.valueOf(rs.getString("shoptype"));
 
-                        shops.add(new Shop(id, plugin, vendor, product, location, buyPrice, sellPrice, shopType));
+                        Shop newShop = new Shop(id, plugin, vendor, product, location, buyPrice, sellPrice, shopType);
+
+                        if (product.isConverted()) {
+                            plugin.debug("Shop had old ItemStack format and is now converted... (#" + id + ")");
+                            addShop(newShop, null);
+                            if (!broadcastOldFormat) {
+                                ShopChest.getInstance().getLogger().warning("An old ItemStack format was found in your database! All shops are now converted to the new format! This may take a while!");
+                                broadcastOldFormat = true;
+                            }
+                            convertCounter++;
+                            if ((convertCounter % 100) == 0) {
+                                ShopChest.getInstance().getLogger().warning("100 more shops are converted! Please be patient...");
+                            }
+                        }
+
+                        shops.add(newShop);
                     }
+
+                    if (broadcastOldFormat) ShopChest.getInstance().getLogger().warning(convertCounter + " shops are converted! It may take a while until all updates are written to your database. Please wait some time before stopping the server!"); 
 
                     if (callback != null) callback.callSyncResult(Collections.unmodifiableCollection(shops));
                 } catch (SQLException ex) {
@@ -304,8 +329,6 @@ public abstract class Database {
                 } finally {
                     close(ps, rs);
                 }
-
-
             }
         }.runTaskAsynchronously(plugin);
     }
@@ -384,7 +407,7 @@ public abstract class Database {
      * @param type Whether the player bought or sold something
      * @param callback Callback that - if succeeded - returns {@code null}
      */
-    public void logEconomy(final Player executor, final ItemStack product, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
+    public void logEconomy(final Player executor, final AdvancedItemStack product, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
         if (plugin.getShopChestConfig().enable_ecomomy_log) {
             new BukkitRunnable() {
                 @Override
@@ -396,7 +419,7 @@ public abstract class Database {
 
                         ps.setString(1, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
                         ps.setString(2, executor.getUniqueId().toString() + " (" + executor.getName() + ")");
-                        ps.setString(3, product.getAmount() + " x " + LanguageUtils.getItemName(product));
+                        ps.setString(3, product.getAmount() + " x " + LanguageUtils.getItemName(product.getItemStack()));
                         ps.setString(4, vendor.getUniqueId().toString() + " (" + vendor.getName() + ")" + (shopType == ShopType.ADMIN ? " (ADMIN)" : ""));
                         ps.setString(5, location.getWorld().getName());
                         ps.setInt(6, location.getBlockX());
@@ -420,6 +443,52 @@ public abstract class Database {
             }.runTaskAsynchronously(plugin);
         } else {
             if (callback != null) callback.callSyncResult(null);
+        }
+    }
+
+    /**
+     * Cleans up the economy log to reduce file size
+     * @param async Whether the call should be executed asynchronously
+     */
+    public void cleanUpEconomy(boolean async) {
+        BukkitRunnable runnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                Statement s = null;
+                Statement s2 = null;
+
+                Calendar cal = Calendar.getInstance();
+                long time = System.currentTimeMillis();
+                cal.add(Calendar.DATE, (plugin.getShopChestConfig().cleanup_ecomomy_log_days * -1));
+                time -= plugin.getShopChestConfig().cleanup_ecomomy_log_days * 86400000L;
+                String logPurgeLimit = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTime());
+                String queryCleanUpLog = "DELETE FROM shop_log WHERE timestamp < '" + logPurgeLimit + "'";
+                String queryCleanUpPlayers = "DELETE FROM player_logout WHERE time < " + String.valueOf(time);
+
+                try {
+                    s = connection.createStatement();
+                    s.executeUpdate(queryCleanUpLog);
+
+                    s2 = connection.createStatement();
+                    s2.executeUpdate(queryCleanUpPlayers);
+
+                    plugin.getLogger().info("Cleaned up economy log");
+                    plugin.debug("Cleaned up economy log");
+                } catch (final SQLException ex) {
+                    plugin.getLogger().severe("Failed to clean up economy log");
+                    plugin.debug("Failed to clean up economy log");
+                    plugin.debug(ex);
+                } finally {
+                    close(s, null);
+                    close(s2, null);
+                }
+            }
+        };
+
+        if (async) {
+            runnable.runTaskAsynchronously(plugin);
+        } else {
+            runnable.run();
         }
     }
 

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.*;
 
 public class Utils {
 
@@ -31,35 +32,38 @@ public class Utils {
      * @param itemStack2 The second item
      * @return {@code true} if the given items are similar or {@code false} if not
      */
-    public static boolean isItemSimilar(ItemStack itemStack1, ItemStack itemStack2) {
-        if (itemStack1 == null || itemStack2 == null) {
+    public static boolean isItemSimilar(AdvancedItemStack itemStack1, AdvancedItemStack itemStack2) {
+        if (itemStack1.getItemStack() == null || itemStack2.getItemStack() == null) {
             return false;
         }
 
-        ItemMeta itemMeta1 = itemStack1.getItemMeta();
-        ItemMeta itemMeta2 = itemStack2.getItemMeta();
+        ItemMeta itemMeta1 = itemStack1.getItemStack().getItemMeta();
+        ItemMeta itemMeta2 = itemStack2.getItemStack().getItemMeta();
 
         if (itemMeta1 instanceof BookMeta && itemMeta2 instanceof BookMeta) {
-            BookMeta bookMeta1 = (BookMeta) itemStack1.getItemMeta();
-            BookMeta bookMeta2 = (BookMeta) itemStack2.getItemMeta();
+            BookMeta bookMeta1 = (BookMeta) itemStack1.getItemStack().getItemMeta();
+            BookMeta bookMeta2 = (BookMeta) itemStack2.getItemStack().getItemMeta();
 
             if ((getMajorVersion() == 9 && getRevision() == 1) || getMajorVersion() == 8) {
-                CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1);
-                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(itemStack2);
+                CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1.getItemStack());
+                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(itemStack2.getItemStack());
 
-                if (generation1 == null) CustomBookMeta.setGeneration(itemStack1, CustomBookMeta.Generation.ORIGINAL);
-                if (generation2 == null) CustomBookMeta.setGeneration(itemStack2, CustomBookMeta.Generation.ORIGINAL);
+                if (generation1 == null) CustomBookMeta.setGeneration(itemStack1.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
+                if (generation2 == null) CustomBookMeta.setGeneration(itemStack2.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
 
             } else if (getMajorVersion() >= 10) {
                 if (bookMeta1.getGeneration() == null) bookMeta1.setGeneration(BookMeta.Generation.ORIGINAL);
                 if (bookMeta2.getGeneration() == null) bookMeta2.setGeneration(BookMeta.Generation.ORIGINAL);
             }
 
-            itemStack1.setItemMeta(bookMeta1);
-            itemStack2.setItemMeta(bookMeta2);
+            itemStack1.getItemStack().setItemMeta(bookMeta1);
+            itemStack2.getItemStack().setItemMeta(bookMeta2);
+
+            itemStack1 = decode(encode(itemStack1));
+            itemStack2 = decode(encode(itemStack2));
         }
 
-        return itemStack1.isSimilar(itemStack2);
+        return itemStack1.getItemStack().isSimilar(itemStack2.getItemStack());
     }
 
     /**
@@ -69,7 +73,7 @@ public class Utils {
      * @param itemStack The items to count
      * @return Amount of given items in the given inventory
      */
-    public static int getAmount(Inventory inventory, ItemStack itemStack) {
+    public static int getAmount(Inventory inventory, AdvancedItemStack itemStack) {
         int amount = 0;
 
         ArrayList<ItemStack> inventoryItems = new ArrayList<>();
@@ -90,7 +94,8 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-            if (isItemSimilar(item, itemStack)) {
+            AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+            if (isItemSimilar(advancedItem, itemStack)) {
                 amount += item.getAmount();
             }
         }
@@ -105,18 +110,19 @@ public class Utils {
      * @param itemStack Item, of which the amount that fits in the inventory should be returned
      * @return Amount of the given item, that fits in the given inventory
      */
-    public static int getFreeSpaceForItem(Inventory inventory, ItemStack itemStack) {
+    public static int getFreeSpaceForItem(Inventory inventory, AdvancedItemStack itemStack) {
         HashMap<Integer, Integer> slotFree = new HashMap<>();
 
         if (inventory instanceof PlayerInventory) {
             for (int i = 0; i < 36; i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, itemStack.getMaxStackSize());
+                    slotFree.put(i, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -125,11 +131,12 @@ public class Utils {
             if (getMajorVersion() >= 9) {
                 ItemStack item = inventory.getItem(40);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(40, itemStack.getMaxStackSize());
+                    slotFree.put(40, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(40, amountToFullStack);
                     }
                 }
@@ -138,11 +145,12 @@ public class Utils {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, itemStack.getMaxStackSize());
+                    slotFree.put(i, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -393,22 +401,23 @@ public class Utils {
     }
 
     /**
-     * Encodes an {@link ItemStack} in a Base64 String
-     * @param itemStack {@link ItemStack} to encode
+     * Encodes an {@link AdvancedItemStack} in a Base64 String
+     * @param itemStack {@link AdvancedItemStack} to encode
      * @return Base64 encoded String
      */
-    public static String encode(ItemStack itemStack) {
+    public static String encode(AdvancedItemStack itemStack) {
         YamlConfiguration config = new YamlConfiguration();
-        config.set("i", itemStack);
+        config.set("i", itemStack.getItemStack());
+        config.set("a", itemStack.getAmount());
         return DatatypeConverter.printBase64Binary(config.saveToString().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
-     * Decodes an {@link ItemStack} from a Base64 String
+     * Decodes an {@link AdvancedItemStack} from a Base64 String
      * @param string Base64 encoded String to decode
-     * @return Decoded {@link ItemStack}
+     * @return Decoded {@link AdvancedItemStack}
      */
-    public static ItemStack decode(String string) {
+    public static AdvancedItemStack decode(String string) {
         YamlConfiguration config = new YamlConfiguration();
         try {
             config.loadFromString(new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8));
@@ -416,7 +425,57 @@ public class Utils {
             e.printStackTrace();
             return null;
         }
-        return config.getItemStack("i", null);
+        ItemStack itemStack = config.getItemStack("i", null);
+        int amount = config.getInt("a", -1);
+        AdvancedItemStack advancedItemStack = new AdvancedItemStack(itemStack, amount);
+        if (amount == -1) {
+            advancedItemStack = decodeOldFormat(string);
+            advancedItemStack.setConverted(true);
+        }
+        return advancedItemStack;
+    }
+    
+    /**
+     * Decodes an {@link ItemStack} from a Base64 String
+     * @param string Base64 encoded String to decode
+     * @return Decoded {@link AdvancedItemStack}
+     * 
+     * @deprecated use {@link #decode()} instead if database format is converted.
+     */
+    @Deprecated
+    public static AdvancedItemStack decodeOldFormat(String string) {
+        YamlConfiguration config = new YamlConfiguration();
+        String encodedString;
+        ItemStack resultStack;
+        try {
+            encodedString = new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8);
+            config.loadFromString(encodedString);
+        } catch (IllegalArgumentException | InvalidConfigurationException e) {
+            e.printStackTrace();
+            return null;
+        }
+        resultStack = config.getItemStack("i", null);
+        int realAmount = 1;
+        Pattern p = Pattern.compile("amount:\\s\\d+");
+        Matcher m = p.matcher(encodedString);
+        if (m.find()) {
+            String matchedString = m.group();
+            Pattern pMatched = Pattern.compile("\\d+");
+            Matcher mMatched = pMatched.matcher(matchedString);
+            if (mMatched.find()) {
+                realAmount = Integer.parseInt(mMatched.group());
+                encodedString = encodedString.replace(matchedString, "amount: 1");
+                try {
+                    config.loadFromString(encodedString);
+                } catch (IllegalArgumentException | InvalidConfigurationException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                resultStack = config.getItemStack("i", null);
+            }
+        }
+        AdvancedItemStack advancedResultStack = new AdvancedItemStack(resultStack, realAmount);
+        return advancedResultStack;
     }
 
 
