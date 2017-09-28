@@ -13,12 +13,6 @@ public class AdvancedItemStack {
 		this.amount = amount;
 	}
 	
-	public AdvancedItemStack(ItemStack itemStack) {
-		super();
-		this.itemStack = itemStack;
-		this.amount = 1;
-	}
-	
 	public ItemStack getItemStack() {
 		return itemStack;
 	}

@@ -356,7 +356,7 @@ class ShopCommandExecutor implements CommandExecutor {
             }
         }
 
-        AdvancedItemStack product = new AdvancedItemStack(new ItemStack(inHand.getType(), amount, inHand.getDurability()));
+        AdvancedItemStack product = new AdvancedItemStack(new ItemStack(inHand.getType(), 0, inHand.getDurability()), amount);
         product.getItemStack().setItemMeta(inHand.getItemMeta());
 
         if (Enchantment.DURABILITY.canEnchantItem(product.getItemStack())) {

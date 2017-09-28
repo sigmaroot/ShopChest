@@ -947,7 +947,7 @@ public class ShopInteractListener implements Listener {
                 return;
             }
 
-            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack());
+            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack(), 0);
             if (stack) product.setAmount(amount);
 
             Inventory inventory = executor.getInventory();
@@ -975,7 +975,7 @@ public class ShopInteractListener implements Listener {
             if (freeSpace >= newAmount) {
                 plugin.debug(executor.getName() + " has enough inventory space for " + freeSpace + " items (#" + shop.getID() + ")");
 
-                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack());
+                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack(), 0);
                 newProduct.setAmount(newAmount);
 
                 EconomyResponse r = econ.withdrawPlayer(executor, worldName, newPrice);
@@ -1107,7 +1107,7 @@ public class ShopInteractListener implements Listener {
                 return;
             }
 
-            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack());
+            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack(), 0);
             if (stack) product.setAmount(amount);
 
             Inventory inventory = chest.getInventory();
@@ -1135,7 +1135,7 @@ public class ShopInteractListener implements Listener {
             if (freeSpace >= newAmount || shop.getShopType() == ShopType.ADMIN) {
                 plugin.debug("Chest has enough inventory space for " + freeSpace + " items (#" + shop.getID() + ")");
 
-                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack());
+                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack(), 0);
                 newProduct.setAmount(newAmount);
 
                 EconomyResponse r = econ.depositPlayer(executor, worldName, newPrice);
@@ -1282,8 +1282,7 @@ public class ShopInteractListener implements Listener {
                         continue slotLoop;
                     }
                 } else {
-                    AdvancedItemStack newItemStack = new AdvancedItemStack(newProduct.getItemStack());
-                    newItemStack.setAmount(1);
+                    AdvancedItemStack newItemStack = new AdvancedItemStack(newProduct.getItemStack(), 1);
                     inventory.setItem(slot, newItemStack.getItemStack());
                     added++;
                 }
