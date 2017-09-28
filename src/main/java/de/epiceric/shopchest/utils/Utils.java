@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.*;
 
 public class Utils {
 
@@ -397,8 +398,8 @@ public class Utils {
     }
 
     /**
-     * Encodes an {@link ItemStack} in a Base64 String
-     * @param itemStack {@link ItemStack} to encode
+     * Encodes an {@link AdvancedItemStack} in a Base64 String
+     * @param itemStack {@link AdvancedItemStack} to encode
      * @return Base64 encoded String
      */
     public static String encode(AdvancedItemStack itemStack) {
@@ -409,9 +410,9 @@ public class Utils {
     }
 
     /**
-     * Decodes an {@link ItemStack} from a Base64 String
+     * Decodes an {@link AdvancedItemStack} from a Base64 String
      * @param string Base64 encoded String to decode
-     * @return Decoded {@link ItemStack}
+     * @return Decoded {@link AdvancedItemStack}
      */
     public static AdvancedItemStack decode(String string) {
         YamlConfiguration config = new YamlConfiguration();
@@ -422,9 +423,54 @@ public class Utils {
             return null;
         }
         ItemStack itemStack = config.getItemStack("i", null);
-        int amount = config.getInt("a", 0);
+        int amount = config.getInt("a", -1);
         AdvancedItemStack advancedItemStack = new AdvancedItemStack(itemStack, amount);
-        return advancedItemStack;
+        if (amount == -1) {
+        	return decode_old(string);
+        } else {
+        	return advancedItemStack;
+        }
+    }
+    
+    /**
+     * Decodes an {@link ItemStack} from a Base64 String
+     * @param string Base64 encoded String to decode
+     * @return Decoded {@link ItemStack}
+     */
+    public static AdvancedItemStack decode_old(String string) {
+        YamlConfiguration config = new YamlConfiguration();
+        String encodedString;
+        ItemStack resultStack;
+        try {
+            encodedString = new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8);
+            config.loadFromString(encodedString);
+        } catch (IllegalArgumentException | InvalidConfigurationException e) {
+            e.printStackTrace();
+            return null;
+        }
+        resultStack = config.getItemStack("i", null);
+        int realAmount = 0;
+        Pattern p = Pattern.compile("amount:\\s\\d+");
+        Matcher m = p.matcher(encodedString);
+        if (m.find()) {
+            String matchedString = m.group();
+            Pattern pMatched = Pattern.compile("\\d+");
+            Matcher mMatched = pMatched.matcher(matchedString);
+            if (mMatched.find()) {
+            	realAmount = Integer.parseInt(mMatched.group());
+                encodedString = encodedString.replace(matchedString, "amount: 1");
+                try {
+                    config.loadFromString(encodedString);
+                } catch (IllegalArgumentException | InvalidConfigurationException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                resultStack = config.getItemStack("i", null);
+                resultStack.setAmount(1);
+            }
+        }
+        AdvancedItemStack advancedResultStack = new AdvancedItemStack(resultStack, realAmount);
+        return advancedResultStack;
     }
 
 
