@@ -449,7 +449,7 @@ public class Utils {
             return null;
         }
         resultStack = config.getItemStack("i", null);
-        int realAmount = 0;
+        int realAmount = 1;
         Pattern p = Pattern.compile("amount:\\s\\d+");
         Matcher m = p.matcher(encodedString);
         if (m.find()) {
@@ -466,7 +466,6 @@ public class Utils {
                     return null;
                 }
                 resultStack = config.getItemStack("i", null);
-                resultStack.setAmount(1);
             }
         }
         AdvancedItemStack advancedResultStack = new AdvancedItemStack(resultStack, realAmount);

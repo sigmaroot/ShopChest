@@ -9,8 +9,8 @@ public class AdvancedItemStack {
 	
 	public AdvancedItemStack(ItemStack itemStack, int amount) {
 		super();
-		this.itemStack = itemStack;
-		if (this.itemStack != null) {
+		if (itemStack != null) {
+			this.itemStack = itemStack.clone();
 			this.itemStack.setAmount(1);
 		}
 		this.amount = amount;
