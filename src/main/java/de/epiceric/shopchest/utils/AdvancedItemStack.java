@@ -10,6 +10,9 @@ public class AdvancedItemStack {
 	public AdvancedItemStack(ItemStack itemStack, int amount) {
 		super();
 		this.itemStack = itemStack;
+		if (this.itemStack != null) {
+			this.itemStack.setAmount(1);
+		}
 		this.amount = amount;
 	}
 	

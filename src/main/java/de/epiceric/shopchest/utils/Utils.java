@@ -91,7 +91,7 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 0);
+        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
             if (isItemSimilar(advancedItem, advancedItemStack)) {
                 amount += item.getAmount();
             }
@@ -116,7 +116,7 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
                     if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
@@ -130,7 +130,7 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(40, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
                     if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
@@ -144,7 +144,7 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
                     if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
