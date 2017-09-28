@@ -1269,7 +1269,8 @@ public class ShopInteractListener implements Listener {
                 ItemStack item = inventory.getItem(slot);
 
                 if (item != null && item.getType() != Material.AIR) {
-                    if (Utils.isItemSimilar(item, newProduct)) {
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                    if (Utils.isItemSimilar(advancedItem, newProduct)) {
                         if (item.getAmount() != item.getMaxStackSize()) {
                             ItemStack newItemStack = new ItemStack(item);
                             newItemStack.setAmount(item.getAmount() + 1);
@@ -1326,7 +1327,8 @@ public class ShopInteractListener implements Listener {
                 ItemStack item = inventory.getItem(slot);
 
                 if (item != null && item.getType() != Material.AIR) {
-                    if (Utils.isItemSimilar(item, itemStack)) {
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                    if (Utils.isItemSimilar(advancedItem, itemStack)) {
                         if (item.getAmount() > 0) {
                             int newAmount = item.getAmount() - 1;
 

@@ -2,7 +2,6 @@ package de.epiceric.shopchest.utils;
 
 import de.epiceric.shopchest.shop.Shop.ShopType;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 

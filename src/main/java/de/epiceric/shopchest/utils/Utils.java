@@ -28,26 +28,26 @@ public class Utils {
     /**
      * Check if two items are similar to each other
      * @param itemStack1 The first item
-     * @param newProduct.getItemStack() The second item
+     * @param newProduct The second item
      * @return {@code true} if the given items are similar or {@code false} if not
      */
-    public static boolean isItemSimilar(ItemStack itemStack1, AdvancedItemStack newProduct) {
+    public static boolean isItemSimilar(AdvancedItemStack itemStack1, AdvancedItemStack newProduct) {
         if (itemStack1 == null || newProduct.getItemStack() == null) {
             return false;
         }
 
-        ItemMeta itemMeta1 = itemStack1.getItemMeta();
+        ItemMeta itemMeta1 = itemStack1.getItemStack().getItemMeta();
         ItemMeta itemMeta2 = newProduct.getItemStack().getItemMeta();
 
         if (itemMeta1 instanceof BookMeta && itemMeta2 instanceof BookMeta) {
-            BookMeta bookMeta1 = (BookMeta) itemStack1.getItemMeta();
+            BookMeta bookMeta1 = (BookMeta) itemStack1.getItemStack().getItemMeta();
             BookMeta bookMeta2 = (BookMeta) newProduct.getItemStack().getItemMeta();
 
             if ((getMajorVersion() == 9 && getRevision() == 1) || getMajorVersion() == 8) {
-                CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1);
+                CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1.getItemStack());
                 CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(newProduct.getItemStack());
 
-                if (generation1 == null) CustomBookMeta.setGeneration(itemStack1, CustomBookMeta.Generation.ORIGINAL);
+                if (generation1 == null) CustomBookMeta.setGeneration(itemStack1.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
                 if (generation2 == null) CustomBookMeta.setGeneration(newProduct.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
 
             } else if (getMajorVersion() >= 10) {
@@ -55,11 +55,11 @@ public class Utils {
                 if (bookMeta2.getGeneration() == null) bookMeta2.setGeneration(BookMeta.Generation.ORIGINAL);
             }
 
-            itemStack1.setItemMeta(bookMeta1);
+            itemStack1.getItemStack().setItemMeta(bookMeta1);
             newProduct.getItemStack().setItemMeta(bookMeta2);
         }
 
-        return itemStack1.isSimilar(newProduct.getItemStack());
+        return itemStack1.getItemStack().isSimilar(newProduct.getItemStack());
     }
 
     /**
@@ -90,7 +90,8 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-            if (isItemSimilar(item, advancedItemStack)) {
+        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+            if (isItemSimilar(advancedItem, advancedItemStack)) {
                 amount += item.getAmount();
             }
         }
@@ -114,7 +115,8 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, advancedItemStack)) {
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                    if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
@@ -127,7 +129,8 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(40, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, advancedItemStack)) {
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                    if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(40, amountToFullStack);
@@ -140,7 +143,8 @@ public class Utils {
                 if (item == null || item.getType() == Material.AIR) {
                     slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, advancedItemStack)) {
+                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+                    if (isItemSimilar(advancedItem, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
                         int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
