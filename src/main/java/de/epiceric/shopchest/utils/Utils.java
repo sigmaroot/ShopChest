@@ -29,27 +29,27 @@ public class Utils {
     /**
      * Check if two items are similar to each other
      * @param itemStack1 The first item
-     * @param newProduct The second item
+     * @param itemStack2 The second item
      * @return {@code true} if the given items are similar or {@code false} if not
      */
-    public static boolean isItemSimilar(AdvancedItemStack itemStack1, AdvancedItemStack newProduct) {
-        if (itemStack1 == null || newProduct.getItemStack() == null) {
+    public static boolean isItemSimilar(AdvancedItemStack itemStack1, AdvancedItemStack itemStack2) {
+        if (itemStack1.getItemStack() == null || itemStack2.getItemStack() == null) {
             return false;
         }
 
         ItemMeta itemMeta1 = itemStack1.getItemStack().getItemMeta();
-        ItemMeta itemMeta2 = newProduct.getItemStack().getItemMeta();
+        ItemMeta itemMeta2 = itemStack2.getItemStack().getItemMeta();
 
         if (itemMeta1 instanceof BookMeta && itemMeta2 instanceof BookMeta) {
             BookMeta bookMeta1 = (BookMeta) itemStack1.getItemStack().getItemMeta();
-            BookMeta bookMeta2 = (BookMeta) newProduct.getItemStack().getItemMeta();
+            BookMeta bookMeta2 = (BookMeta) itemStack2.getItemStack().getItemMeta();
 
             if ((getMajorVersion() == 9 && getRevision() == 1) || getMajorVersion() == 8) {
                 CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1.getItemStack());
-                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(newProduct.getItemStack());
+                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(itemStack2.getItemStack());
 
                 if (generation1 == null) CustomBookMeta.setGeneration(itemStack1.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
-                if (generation2 == null) CustomBookMeta.setGeneration(newProduct.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
+                if (generation2 == null) CustomBookMeta.setGeneration(itemStack2.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
 
             } else if (getMajorVersion() >= 10) {
                 if (bookMeta1.getGeneration() == null) bookMeta1.setGeneration(BookMeta.Generation.ORIGINAL);
@@ -57,10 +57,10 @@ public class Utils {
             }
 
             itemStack1.getItemStack().setItemMeta(bookMeta1);
-            newProduct.getItemStack().setItemMeta(bookMeta2);
+            itemStack2.getItemStack().setItemMeta(bookMeta2);
         }
 
-        return itemStack1.getItemStack().isSimilar(newProduct.getItemStack());
+        return itemStack1.getItemStack().isSimilar(itemStack2.getItemStack());
     }
 
     /**
@@ -91,7 +91,7 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, item.getAmount());
+        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 0);
             if (isItemSimilar(advancedItem, advancedItemStack)) {
                 amount += item.getAmount();
             }
