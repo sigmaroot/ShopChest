@@ -12,6 +12,7 @@ import de.epiceric.shopchest.language.LanguageUtils;
 import de.epiceric.shopchest.language.LocalizedMessage;
 import de.epiceric.shopchest.nms.JsonBuilder;
 import de.epiceric.shopchest.shop.Shop;
+import de.epiceric.shopchest.utils.AdvancedItemStack;
 import de.epiceric.shopchest.utils.Callback;
 import de.epiceric.shopchest.utils.ClickType;
 import de.epiceric.shopchest.utils.ItemUtils;
@@ -355,11 +356,11 @@ class ShopCommandExecutor implements CommandExecutor {
             }
         }
 
-        ItemStack product = new ItemStack(inHand.getType(), amount, inHand.getDurability());
-        product.setItemMeta(inHand.getItemMeta());
+        AdvancedItemStack product = new AdvancedItemStack(new ItemStack(inHand.getType(), amount, inHand.getDurability()));
+        product.getItemStack().setItemMeta(inHand.getItemMeta());
 
-        if (Enchantment.DURABILITY.canEnchantItem(product)) {
-            if (product.getDurability() > 0 && !plugin.getShopChestConfig().allow_broken_items) {
+        if (Enchantment.DURABILITY.canEnchantItem(product.getItemStack())) {
+            if (product.getItemStack().getDurability() > 0 && !plugin.getShopChestConfig().allow_broken_items) {
                 p.sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.CANNOT_SELL_BROKEN_ITEM));
                 plugin.debug(p.getName() + "'s item is broken");
                 return;

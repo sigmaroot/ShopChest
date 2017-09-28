@@ -28,27 +28,27 @@ public class Utils {
     /**
      * Check if two items are similar to each other
      * @param itemStack1 The first item
-     * @param itemStack2 The second item
+     * @param newProduct.getItemStack() The second item
      * @return {@code true} if the given items are similar or {@code false} if not
      */
-    public static boolean isItemSimilar(ItemStack itemStack1, ItemStack itemStack2) {
-        if (itemStack1 == null || itemStack2 == null) {
+    public static boolean isItemSimilar(ItemStack itemStack1, AdvancedItemStack newProduct) {
+        if (itemStack1 == null || newProduct.getItemStack() == null) {
             return false;
         }
 
         ItemMeta itemMeta1 = itemStack1.getItemMeta();
-        ItemMeta itemMeta2 = itemStack2.getItemMeta();
+        ItemMeta itemMeta2 = newProduct.getItemStack().getItemMeta();
 
         if (itemMeta1 instanceof BookMeta && itemMeta2 instanceof BookMeta) {
             BookMeta bookMeta1 = (BookMeta) itemStack1.getItemMeta();
-            BookMeta bookMeta2 = (BookMeta) itemStack2.getItemMeta();
+            BookMeta bookMeta2 = (BookMeta) newProduct.getItemStack().getItemMeta();
 
             if ((getMajorVersion() == 9 && getRevision() == 1) || getMajorVersion() == 8) {
                 CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1);
-                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(itemStack2);
+                CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(newProduct.getItemStack());
 
                 if (generation1 == null) CustomBookMeta.setGeneration(itemStack1, CustomBookMeta.Generation.ORIGINAL);
-                if (generation2 == null) CustomBookMeta.setGeneration(itemStack2, CustomBookMeta.Generation.ORIGINAL);
+                if (generation2 == null) CustomBookMeta.setGeneration(newProduct.getItemStack(), CustomBookMeta.Generation.ORIGINAL);
 
             } else if (getMajorVersion() >= 10) {
                 if (bookMeta1.getGeneration() == null) bookMeta1.setGeneration(BookMeta.Generation.ORIGINAL);
@@ -56,20 +56,20 @@ public class Utils {
             }
 
             itemStack1.setItemMeta(bookMeta1);
-            itemStack2.setItemMeta(bookMeta2);
+            newProduct.getItemStack().setItemMeta(bookMeta2);
         }
 
-        return itemStack1.isSimilar(itemStack2);
+        return itemStack1.isSimilar(newProduct.getItemStack());
     }
 
     /**
      * Gets the amount of items in an inventory
      *
      * @param inventory The inventory, in which the items are counted
-     * @param itemStack The items to count
+     * @param advancedItemStack The items to count
      * @return Amount of given items in the given inventory
      */
-    public static int getAmount(Inventory inventory, ItemStack itemStack) {
+    public static int getAmount(Inventory inventory, AdvancedItemStack advancedItemStack) {
         int amount = 0;
 
         ArrayList<ItemStack> inventoryItems = new ArrayList<>();
@@ -90,7 +90,7 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-            if (isItemSimilar(item, itemStack)) {
+            if (isItemSimilar(item, advancedItemStack)) {
                 amount += item.getAmount();
             }
         }
@@ -102,21 +102,21 @@ public class Utils {
      * Get the amount of the given item, that fits in the given inventory
      *
      * @param inventory Inventory, where to search for free space
-     * @param itemStack Item, of which the amount that fits in the inventory should be returned
+     * @param advancedItemStack Item, of which the amount that fits in the inventory should be returned
      * @return Amount of the given item, that fits in the given inventory
      */
-    public static int getFreeSpaceForItem(Inventory inventory, ItemStack itemStack) {
+    public static int getFreeSpaceForItem(Inventory inventory, AdvancedItemStack advancedItemStack) {
         HashMap<Integer, Integer> slotFree = new HashMap<>();
 
         if (inventory instanceof PlayerInventory) {
             for (int i = 0; i < 36; i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, itemStack.getMaxStackSize());
+                    slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    if (isItemSimilar(item, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -125,11 +125,11 @@ public class Utils {
             if (getMajorVersion() >= 9) {
                 ItemStack item = inventory.getItem(40);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(40, itemStack.getMaxStackSize());
+                    slotFree.put(40, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    if (isItemSimilar(item, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(40, amountToFullStack);
                     }
                 }
@@ -138,11 +138,11 @@ public class Utils {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, itemStack.getMaxStackSize());
+                    slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
                 } else {
-                    if (isItemSimilar(item, itemStack)) {
+                    if (isItemSimilar(item, advancedItemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = itemStack.getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -397,9 +397,10 @@ public class Utils {
      * @param itemStack {@link ItemStack} to encode
      * @return Base64 encoded String
      */
-    public static String encode(ItemStack itemStack) {
+    public static String encode(AdvancedItemStack itemStack) {
         YamlConfiguration config = new YamlConfiguration();
-        config.set("i", itemStack);
+        config.set("i", itemStack.getItemStack());
+        config.set("a", itemStack.getAmount());
         return DatatypeConverter.printBase64Binary(config.saveToString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -408,7 +409,7 @@ public class Utils {
      * @param string Base64 encoded String to decode
      * @return Decoded {@link ItemStack}
      */
-    public static ItemStack decode(String string) {
+    public static AdvancedItemStack decode(String string) {
         YamlConfiguration config = new YamlConfiguration();
         try {
             config.loadFromString(new String(DatatypeConverter.parseBase64Binary(string), StandardCharsets.UTF_8));
@@ -416,7 +417,10 @@ public class Utils {
             e.printStackTrace();
             return null;
         }
-        return config.getItemStack("i", null);
+        ItemStack itemStack = config.getItemStack("i", null);
+        int amount = config.getInt("a", 0);
+        AdvancedItemStack advancedItemStack = new AdvancedItemStack(itemStack, amount);
+        return advancedItemStack;
     }
 
 

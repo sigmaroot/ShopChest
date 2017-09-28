@@ -6,6 +6,7 @@ import de.epiceric.shopchest.exceptions.WorldNotFoundException;
 import de.epiceric.shopchest.language.LanguageUtils;
 import de.epiceric.shopchest.shop.Shop;
 import de.epiceric.shopchest.shop.Shop.ShopType;
+import de.epiceric.shopchest.utils.AdvancedItemStack;
 import de.epiceric.shopchest.utils.Callback;
 import de.epiceric.shopchest.utils.Utils;
 import org.bukkit.Bukkit;
@@ -287,7 +288,7 @@ public abstract class Database {
                         plugin.debug("Initializing new shop... (#" + id + ")");
 
                         OfflinePlayer vendor = Bukkit.getOfflinePlayer(UUID.fromString(rs.getString("vendor")));
-                        ItemStack product = Utils.decode(rs.getString("product"));
+                        AdvancedItemStack product = Utils.decode(rs.getString("product"));
                         double buyPrice = rs.getDouble("buyprice");
                         double sellPrice = rs.getDouble("sellprice");
                         ShopType shopType = ShopType.valueOf(rs.getString("shoptype"));
@@ -377,14 +378,14 @@ public abstract class Database {
     /**
      * Log an economy transaction to the database
      * @param executor Player who bought/sold something
-     * @param product ItemStack that was bought/sold
+     * @param newProduct ItemStack that was bought/sold
      * @param vendor Vendor of the shop
      * @param location Location of the shop
      * @param price Price (buyprice or sellprice, depends on {@code type})
      * @param type Whether the player bought or sold something
      * @param callback Callback that - if succeeded - returns {@code null}
      */
-    public void logEconomy(final Player executor, final ItemStack product, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
+    public void logEconomy(final Player executor, final AdvancedItemStack newProduct, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
         if (plugin.getShopChestConfig().enable_ecomomy_log) {
             new BukkitRunnable() {
                 @Override
@@ -396,7 +397,7 @@ public abstract class Database {
 
                         ps.setString(1, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
                         ps.setString(2, executor.getUniqueId().toString() + " (" + executor.getName() + ")");
-                        ps.setString(3, product.getAmount() + " x " + LanguageUtils.getItemName(product));
+                        ps.setString(3, newProduct.getAmount() + " x " + LanguageUtils.getItemName(newProduct.getItemStack()));
                         ps.setString(4, vendor.getUniqueId().toString() + " (" + vendor.getName() + ")" + (shopType == ShopType.ADMIN ? " (ADMIN)" : ""));
                         ps.setString(5, location.getWorld().getName());
                         ps.setInt(6, location.getBlockX());

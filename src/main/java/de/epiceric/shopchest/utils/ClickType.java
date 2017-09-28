@@ -10,7 +10,7 @@ public class ClickType {
 
     private static HashMap<OfflinePlayer, ClickType> playerClickType = new HashMap<>();
     private EnumClickType enumClickType;
-    private ItemStack product;
+    private AdvancedItemStack product;
     private double buyPrice;
     private double sellPrice;
     private ShopType shopType;
@@ -19,7 +19,7 @@ public class ClickType {
         this.enumClickType = enumClickType;
     }
 
-    public ClickType(EnumClickType enumClickType, ItemStack product, double buyPrice, double sellPrice, ShopType shopType) {
+    public ClickType(EnumClickType enumClickType, AdvancedItemStack product, double buyPrice, double sellPrice, ShopType shopType) {
         this.enumClickType = enumClickType;
         this.product = product;
         this.sellPrice = sellPrice;
@@ -68,7 +68,7 @@ public class ClickType {
     /**
      * @return If {@link #getClickType()} returns {@link EnumClickType#CREATE}, this returns the item, the player has hold in his hands, else <b>null</b>.
      */
-    public ItemStack getProduct() {
+    public AdvancedItemStack getProduct() {
         return product;
     }
 

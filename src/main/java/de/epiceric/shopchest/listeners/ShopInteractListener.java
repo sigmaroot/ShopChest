@@ -29,6 +29,7 @@ import de.epiceric.shopchest.nms.Hologram;
 import de.epiceric.shopchest.shop.Shop;
 import de.epiceric.shopchest.shop.Shop.ShopType;
 import de.epiceric.shopchest.sql.Database;
+import de.epiceric.shopchest.utils.AdvancedItemStack;
 import de.epiceric.shopchest.utils.ClickType;
 import de.epiceric.shopchest.utils.ItemUtils;
 import de.epiceric.shopchest.utils.Permissions;
@@ -305,7 +306,7 @@ public class ShopInteractListener implements Listener {
 
                                 if (b.getRelative(BlockFace.UP).getType() == Material.AIR) {
                                     ClickType clickType = ClickType.getPlayerClickType(p);
-                                    ItemStack product = clickType.getProduct();
+                                    AdvancedItemStack product = clickType.getProduct();
                                     double buyPrice = clickType.getBuyPrice();
                                     double sellPrice = clickType.getSellPrice();
                                     ShopType shopType = clickType.getShopType();
@@ -487,7 +488,7 @@ public class ShopInteractListener implements Listener {
                                         } else {
                                             if (externalPluginsAllowed || p.hasPermission(Permissions.BYPASS_EXTERNAL_PLUGIN)) {
                                                 Chest c = (Chest) b.getState();
-                                                int amount = (p.isSneaking() ? shop.getProduct().getMaxStackSize() : shop.getProduct().getAmount());
+                                                int amount = (p.isSneaking() ? shop.getProduct().getItemStack().getMaxStackSize() : shop.getProduct().getAmount());
 
                                                 if (Utils.getAmount(c.getInventory(), shop.getProduct()) >= amount) {
                                                     if (confirmed || !config.confirm_shopping) {
@@ -527,7 +528,7 @@ public class ShopInteractListener implements Listener {
                                                         if (shop.getVendor().isOnline() && config.enable_vendor_messages) {
                                                             shop.getVendor().getPlayer().sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.VENDOR_OUT_OF_STOCK,
                                                                     new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(shop.getProduct().getAmount())),
-                                                                            new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(shop.getProduct()))));
+                                                                            new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(shop.getProduct().getItemStack()))));
                                                         }
                                                         plugin.debug("Shop is out of stock");
                                                     }
@@ -577,7 +578,7 @@ public class ShopInteractListener implements Listener {
 
                                         if (externalPluginsAllowed || p.hasPermission(Permissions.BYPASS_EXTERNAL_PLUGIN)) {
                                             boolean stack = p.isSneaking() && !Utils.hasAxeInHand(p);
-                                            int amount = stack ? shop.getProduct().getMaxStackSize() : shop.getProduct().getAmount();
+                                            int amount = stack ? shop.getProduct().getItemStack().getMaxStackSize() : shop.getProduct().getAmount();
 
                                             if (Utils.getAmount(p.getInventory(), shop.getProduct()) >= amount) {
                                                 if (confirmed || !config.confirm_shopping) {
@@ -722,7 +723,7 @@ public class ShopInteractListener implements Listener {
      * @param sellPrice Sell price
      * @param shopType  Type of the shop
      */
-    private void create(final Player executor, final Location location, final ItemStack product, final double buyPrice, final double sellPrice, final ShopType shopType) {
+    private void create(final Player executor, final Location location, final AdvancedItemStack product, final double buyPrice, final double sellPrice, final ShopType shopType) {
         plugin.debug(executor.getName() + " is creating new shop...");
 
         double creationPrice = (shopType == ShopType.NORMAL) ? config.shop_creation_price_normal : config.shop_creation_price_admin;
@@ -822,7 +823,7 @@ public class ShopInteractListener implements Listener {
         Chest c = (Chest) shop.getLocation().getBlock().getState();
 
         int amount = Utils.getAmount(c.getInventory(), shop.getProduct());
-        Material type = shop.getProduct().getType();
+        Material type = shop.getProduct().getItemStack().getType();
 
         String vendorName = (shop.getVendor().getName() == null ?
                 shop.getVendor().getUniqueId().toString() : shop.getVendor().getName());
@@ -832,7 +833,7 @@ public class ShopInteractListener implements Listener {
 
         String productString = LanguageUtils.getMessage(LocalizedMessage.Message.SHOP_INFO_PRODUCT,
                 new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(shop.getProduct().getAmount())),
-                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(shop.getProduct())));
+                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(shop.getProduct().getItemStack())));
 
         String enchantmentString = "";
         String potionEffectString = "";
@@ -851,10 +852,10 @@ public class ShopInteractListener implements Listener {
         String stock = LanguageUtils.getMessage(LocalizedMessage.Message.SHOP_INFO_STOCK,
                 new LocalizedMessage.ReplacedPlaceholder(Placeholder.STOCK, String.valueOf(amount)));
 
-        String potionEffectName = LanguageUtils.getPotionEffectName(shop.getProduct());
+        String potionEffectName = LanguageUtils.getPotionEffectName(shop.getProduct().getItemStack());
 
         if (potionEffectName.length() > 0) {
-            boolean potionExtended = ItemUtils.isExtendedPotion(shop.getProduct());
+            boolean potionExtended = ItemUtils.isExtendedPotion(shop.getProduct().getItemStack());
 
             String extended = potionExtended ? LanguageUtils.getMessage(LocalizedMessage.Message.SHOP_INFO_EXTENDED) : "";
             potionEffectString = LanguageUtils.getMessage(LocalizedMessage.Message.SHOP_INFO_POTION_EFFECT,
@@ -863,11 +864,11 @@ public class ShopInteractListener implements Listener {
         }
 
         if (type == Material.WRITTEN_BOOK) {
-            BookMeta meta = (BookMeta) shop.getProduct().getItemMeta();
+            BookMeta meta = (BookMeta) shop.getProduct().getItemStack().getItemMeta();
             CustomBookMeta.Generation generation = CustomBookMeta.Generation.TATTERED;
 
             if ((Utils.getMajorVersion() == 9 && Utils.getRevision() == 1) || Utils.getMajorVersion() == 8) {
-                CustomBookMeta.Generation gen = CustomBookMeta.getGeneration(shop.getProduct());
+                CustomBookMeta.Generation gen = CustomBookMeta.getGeneration(shop.getProduct().getItemStack());
                 generation = (gen == null ? CustomBookMeta.Generation.ORIGINAL : gen);
             } else if (Utils.getMajorVersion() >= 10) {
                 if (meta.hasGeneration()) {
@@ -887,7 +888,7 @@ public class ShopInteractListener implements Listener {
                     new LocalizedMessage.ReplacedPlaceholder(Placeholder.MUSIC_TITLE, musicDiscName));
         }
 
-        Map<Enchantment, Integer> enchantmentMap = ItemUtils.getEnchantments(shop.getProduct());
+        Map<Enchantment, Integer> enchantmentMap = ItemUtils.getEnchantments(shop.getProduct().getItemStack());
         String enchantmentList = LanguageUtils.getEnchantmentString(enchantmentMap);
 
         if (enchantmentList.length() > 0) {
@@ -918,7 +919,7 @@ public class ShopInteractListener implements Listener {
         plugin.debug(executor.getName() + " is buying (#" + shop.getID() + ")");
 
         int amount = shop.getProduct().getAmount();
-        if (stack) amount = shop.getProduct().getMaxStackSize();
+        if (stack) amount = shop.getProduct().getItemStack().getMaxStackSize();
 
         String worldName = shop.getLocation().getWorld().getName();
 
@@ -946,7 +947,7 @@ public class ShopInteractListener implements Listener {
                 return;
             }
 
-            ItemStack product = new ItemStack(shop.getProduct());
+            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack());
             if (stack) product.setAmount(amount);
 
             Inventory inventory = executor.getInventory();
@@ -974,7 +975,7 @@ public class ShopInteractListener implements Listener {
             if (freeSpace >= newAmount) {
                 plugin.debug(executor.getName() + " has enough inventory space for " + freeSpace + " items (#" + shop.getID() + ")");
 
-                ItemStack newProduct = new ItemStack(product);
+                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack());
                 newProduct.setAmount(newAmount);
 
                 EconomyResponse r = econ.withdrawPlayer(executor, worldName, newPrice);
@@ -1011,14 +1012,14 @@ public class ShopInteractListener implements Listener {
 
                             String vendorName = (shop.getVendor().getName() == null ? shop.getVendor().getUniqueId().toString() : shop.getVendor().getName());
                             executor.sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.BUY_SUCCESS, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                    new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice)),
+                                    new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice)),
                                     new LocalizedMessage.ReplacedPlaceholder(Placeholder.VENDOR, vendorName)));
 
                             plugin.debug(executor.getName() + " successfully bought (#" + shop.getID() + ")");
 
                             if (shop.getVendor().isOnline() && config.enable_vendor_messages) {
                                 shop.getVendor().getPlayer().sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.SOMEONE_BOUGHT, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                        new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice)),
+                                        new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice)),
                                         new LocalizedMessage.ReplacedPlaceholder(Placeholder.PLAYER, executor.getName())));
                             }
 
@@ -1053,7 +1054,7 @@ public class ShopInteractListener implements Listener {
                         }.runTaskLater(plugin, 1L);
 
                         executor.sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.BUY_SUCCESS_ADMIN, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice))));
+                                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.BUY_PRICE, String.valueOf(newPrice))));
 
                         plugin.debug(executor.getName() + " successfully bought (#" + shop.getID() + ")");
                     }
@@ -1079,7 +1080,7 @@ public class ShopInteractListener implements Listener {
         plugin.debug(executor.getName() + " is selling (#" + shop.getID() + ")");
 
         int amount = shop.getProduct().getAmount();
-        if (stack) amount = shop.getProduct().getMaxStackSize();
+        if (stack) amount = shop.getProduct().getItemStack().getMaxStackSize();
 
         double price = shop.getSellPrice();
         if (stack) price = (price / shop.getProduct().getAmount()) * amount;
@@ -1106,7 +1107,7 @@ public class ShopInteractListener implements Listener {
                 return;
             }
 
-            ItemStack product = new ItemStack(shop.getProduct());
+            AdvancedItemStack product = new AdvancedItemStack(shop.getProduct().getItemStack());
             if (stack) product.setAmount(amount);
 
             Inventory inventory = chest.getInventory();
@@ -1134,7 +1135,7 @@ public class ShopInteractListener implements Listener {
             if (freeSpace >= newAmount || shop.getShopType() == ShopType.ADMIN) {
                 plugin.debug("Chest has enough inventory space for " + freeSpace + " items (#" + shop.getID() + ")");
 
-                ItemStack newProduct = new ItemStack(product);
+                AdvancedItemStack newProduct = new AdvancedItemStack(product.getItemStack());
                 newProduct.setAmount(newAmount);
 
                 EconomyResponse r = econ.depositPlayer(executor, worldName, newPrice);
@@ -1171,14 +1172,14 @@ public class ShopInteractListener implements Listener {
 
                             String vendorName = (shop.getVendor().getName() == null ? shop.getVendor().getUniqueId().toString() : shop.getVendor().getName());
                             executor.sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.SELL_SUCCESS, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                    new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice)),
+                                    new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice)),
                                     new LocalizedMessage.ReplacedPlaceholder(Placeholder.VENDOR, vendorName)));
 
                             plugin.debug(executor.getName() + " successfully sold (#" + shop.getID() + ")");
 
                             if (shop.getVendor().isOnline() && config.enable_vendor_messages) {
                                 shop.getVendor().getPlayer().sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.SOMEONE_SOLD, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                        new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice)),
+                                        new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice)),
                                         new LocalizedMessage.ReplacedPlaceholder(Placeholder.PLAYER, executor.getName())));
                             }
 
@@ -1214,7 +1215,7 @@ public class ShopInteractListener implements Listener {
                         }.runTaskLater(plugin, 1L);
 
                         executor.sendMessage(LanguageUtils.getMessage(LocalizedMessage.Message.SELL_SUCCESS_ADMIN, new LocalizedMessage.ReplacedPlaceholder(Placeholder.AMOUNT, String.valueOf(newAmount)),
-                                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product)), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice))));
+                                new LocalizedMessage.ReplacedPlaceholder(Placeholder.ITEM_NAME, LanguageUtils.getItemName(product.getItemStack())), new LocalizedMessage.ReplacedPlaceholder(Placeholder.SELL_PRICE, String.valueOf(newPrice))));
 
                         plugin.debug(executor.getName() + " successfully sold (#" + shop.getID() + ")");
                     }
@@ -1237,14 +1238,14 @@ public class ShopInteractListener implements Listener {
     /**
      * Adds items to an inventory
      * @param inventory The inventory, to which the items will be added
-     * @param itemStack Items to add
+     * @param newProduct Items to add
      * @return Whether all items were added to the inventory
      */
-    private boolean addToInventory(Inventory inventory, ItemStack itemStack) {
+    private boolean addToInventory(Inventory inventory, AdvancedItemStack newProduct) {
         plugin.debug("Adding items to inventory...");
 
         HashMap<Integer, ItemStack> inventoryItems = new HashMap<>();
-        int amount = itemStack.getAmount();
+        int amount = newProduct.getAmount();
         int added = 0;
 
         if (inventory instanceof PlayerInventory) {
@@ -1268,7 +1269,7 @@ public class ShopInteractListener implements Listener {
                 ItemStack item = inventory.getItem(slot);
 
                 if (item != null && item.getType() != Material.AIR) {
-                    if (Utils.isItemSimilar(item, itemStack)) {
+                    if (Utils.isItemSimilar(item, newProduct)) {
                         if (item.getAmount() != item.getMaxStackSize()) {
                             ItemStack newItemStack = new ItemStack(item);
                             newItemStack.setAmount(item.getAmount() + 1);
@@ -1281,9 +1282,9 @@ public class ShopInteractListener implements Listener {
                         continue slotLoop;
                     }
                 } else {
-                    ItemStack newItemStack = new ItemStack(itemStack);
+                    AdvancedItemStack newItemStack = new AdvancedItemStack(newProduct.getItemStack());
                     newItemStack.setAmount(1);
-                    inventory.setItem(slot, newItemStack);
+                    inventory.setItem(slot, newItemStack.getItemStack());
                     added++;
                 }
             }
@@ -1298,7 +1299,7 @@ public class ShopInteractListener implements Listener {
      * @param itemStack Items to remove
      * @return Whether all items were removed from the inventory
      */
-    private boolean removeFromInventory(Inventory inventory, ItemStack itemStack) {
+    private boolean removeFromInventory(Inventory inventory, AdvancedItemStack itemStack) {
         plugin.debug("Removing items from inventory...");
 
         HashMap<Integer, ItemStack> inventoryItems = new HashMap<>();
