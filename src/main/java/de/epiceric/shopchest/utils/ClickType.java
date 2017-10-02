@@ -41,6 +41,7 @@ public class ClickType {
 
     /**
      * Removes the click type from a player
+     * 
      * @param player Player to remove the click type from
      */
     public static void removePlayerClickType(OfflinePlayer player) {

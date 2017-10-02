@@ -67,10 +67,10 @@ public class Utils {
      * Gets the amount of items in an inventory
      *
      * @param inventory The inventory, in which the items are counted
-     * @param advancedItemStack The items to count
+     * @param itemStack The items to count
      * @return Amount of given items in the given inventory
      */
-    public static int getAmount(Inventory inventory, AdvancedItemStack advancedItemStack) {
+    public static int getAmount(Inventory inventory, AdvancedItemStack itemStack) {
         int amount = 0;
 
         ArrayList<ItemStack> inventoryItems = new ArrayList<>();
@@ -91,8 +91,8 @@ public class Utils {
         }
 
         for (ItemStack item : inventoryItems) {
-        	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
-            if (isItemSimilar(advancedItem, advancedItemStack)) {
+            AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+            if (isItemSimilar(advancedItem, itemStack)) {
                 amount += item.getAmount();
             }
         }
@@ -104,22 +104,22 @@ public class Utils {
      * Get the amount of the given item, that fits in the given inventory
      *
      * @param inventory Inventory, where to search for free space
-     * @param advancedItemStack Item, of which the amount that fits in the inventory should be returned
+     * @param itemStack Item, of which the amount that fits in the inventory should be returned
      * @return Amount of the given item, that fits in the given inventory
      */
-    public static int getFreeSpaceForItem(Inventory inventory, AdvancedItemStack advancedItemStack) {
+    public static int getFreeSpaceForItem(Inventory inventory, AdvancedItemStack itemStack) {
         HashMap<Integer, Integer> slotFree = new HashMap<>();
 
         if (inventory instanceof PlayerInventory) {
             for (int i = 0; i < 36; i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
+                    slotFree.put(i, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
-                    if (isItemSimilar(advancedItem, advancedItemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -128,12 +128,12 @@ public class Utils {
             if (getMajorVersion() >= 9) {
                 ItemStack item = inventory.getItem(40);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(40, advancedItemStack.getItemStack().getMaxStackSize());
+                    slotFree.put(40, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
-                    if (isItemSimilar(advancedItem, advancedItemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(40, amountToFullStack);
                     }
                 }
@@ -142,12 +142,12 @@ public class Utils {
             for (int i = 0; i < inventory.getSize(); i++) {
                 ItemStack item = inventory.getItem(i);
                 if (item == null || item.getType() == Material.AIR) {
-                    slotFree.put(i, advancedItemStack.getItemStack().getMaxStackSize());
+                    slotFree.put(i, itemStack.getItemStack().getMaxStackSize());
                 } else {
-                	AdvancedItemStack advancedItem = new AdvancedItemStack(item, 1);
-                    if (isItemSimilar(advancedItem, advancedItemStack)) {
+                    AdvancedItemStack advancedItem = new AdvancedItemStack(item);
+                    if (isItemSimilar(advancedItem, itemStack)) {
                         int amountInSlot = item.getAmount();
-                        int amountToFullStack = advancedItemStack.getItemStack().getMaxStackSize() - amountInSlot;
+                        int amountToFullStack = itemStack.getItemStack().getMaxStackSize() - amountInSlot;
                         slotFree.put(i, amountToFullStack);
                     }
                 }
@@ -426,18 +426,21 @@ public class Utils {
         int amount = config.getInt("a", -1);
         AdvancedItemStack advancedItemStack = new AdvancedItemStack(itemStack, amount);
         if (amount == -1) {
-        	return decode_old(string);
-        } else {
-        	return advancedItemStack;
+            ShopChest.getInstance().getLogger().warning("Converting old shop format to new format");
+            advancedItemStack = decodeOldFormat(string);
         }
+        return advancedItemStack;
     }
     
     /**
      * Decodes an {@link ItemStack} from a Base64 String
      * @param string Base64 encoded String to decode
-     * @return Decoded {@link ItemStack}
+     * @return Decoded {@link AdvancedItemStack}
+     * 
+     * @deprecated use {@link #decode()} instead if database format is converted.
      */
-    public static AdvancedItemStack decode_old(String string) {
+    @Deprecated
+    public static AdvancedItemStack decodeOldFormat(String string) {
         YamlConfiguration config = new YamlConfiguration();
         String encodedString;
         ItemStack resultStack;
@@ -457,7 +460,7 @@ public class Utils {
             Pattern pMatched = Pattern.compile("\\d+");
             Matcher mMatched = pMatched.matcher(matchedString);
             if (mMatched.find()) {
-            	realAmount = Integer.parseInt(mMatched.group());
+                realAmount = Integer.parseInt(mMatched.group());
                 encodedString = encodedString.replace(matchedString, "amount: 1");
                 try {
                     config.loadFromString(encodedString);

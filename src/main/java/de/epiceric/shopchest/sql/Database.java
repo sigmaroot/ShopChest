@@ -377,14 +377,14 @@ public abstract class Database {
     /**
      * Log an economy transaction to the database
      * @param executor Player who bought/sold something
-     * @param newProduct ItemStack that was bought/sold
+     * @param product ItemStack that was bought/sold
      * @param vendor Vendor of the shop
      * @param location Location of the shop
      * @param price Price (buyprice or sellprice, depends on {@code type})
      * @param type Whether the player bought or sold something
      * @param callback Callback that - if succeeded - returns {@code null}
      */
-    public void logEconomy(final Player executor, final AdvancedItemStack newProduct, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
+    public void logEconomy(final Player executor, final AdvancedItemStack product, final OfflinePlayer vendor, final ShopType shopType, final Location location, final double price, final ShopBuySellEvent.Type type, final Callback<Void> callback) {
         if (plugin.getShopChestConfig().enable_ecomomy_log) {
             new BukkitRunnable() {
                 @Override
@@ -396,7 +396,7 @@ public abstract class Database {
 
                         ps.setString(1, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime()));
                         ps.setString(2, executor.getUniqueId().toString() + " (" + executor.getName() + ")");
-                        ps.setString(3, newProduct.getAmount() + " x " + LanguageUtils.getItemName(newProduct.getItemStack()));
+                        ps.setString(3, product.getAmount() + " x " + LanguageUtils.getItemName(product.getItemStack()));
                         ps.setString(4, vendor.getUniqueId().toString() + " (" + vendor.getName() + ")" + (shopType == ShopType.ADMIN ? " (ADMIN)" : ""));
                         ps.setString(5, location.getWorld().getName());
                         ps.setInt(6, location.getBlockX());
