@@ -6,7 +6,8 @@ public class AdvancedItemStack {
     
     ItemStack itemStack;
     int amount;
-    
+    boolean converted;
+
     public AdvancedItemStack(ItemStack itemStack, int amount) {
         super();
         if (itemStack != null) {
@@ -14,6 +15,7 @@ public class AdvancedItemStack {
             this.itemStack.setAmount(1);
         }
         this.amount = amount;
+        converted = false;
     }
     
     public AdvancedItemStack(ItemStack itemStack) {
@@ -23,6 +25,7 @@ public class AdvancedItemStack {
             this.itemStack.setAmount(1);
         }
         this.amount = 1;
+        converted = false;
     }
     
     public ItemStack getItemStack() {
@@ -39,6 +42,14 @@ public class AdvancedItemStack {
     
     public void setAmount(int amount) {
         this.amount = amount;
-    }    
+    }
+    
+    public boolean isConverted() {
+        return converted;
+    }
+
+    public void setConverted(boolean converted) {
+        this.converted = converted;
+    }
 
 }

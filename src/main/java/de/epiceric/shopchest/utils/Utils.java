@@ -426,8 +426,8 @@ public class Utils {
         int amount = config.getInt("a", -1);
         AdvancedItemStack advancedItemStack = new AdvancedItemStack(itemStack, amount);
         if (amount == -1) {
-            ShopChest.getInstance().getLogger().warning("Converting old shop format to new format");
             advancedItemStack = decodeOldFormat(string);
+            advancedItemStack.setConverted(true);
         }
         return advancedItemStack;
     }

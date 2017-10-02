@@ -253,6 +253,8 @@ public abstract class Database {
         new BukkitRunnable() {
             @Override
             public void run() {
+                boolean broadcastOldFormat = false;
+
                 PreparedStatement ps = null;
                 ResultSet rs = null;
 
@@ -292,8 +294,21 @@ public abstract class Database {
                         double sellPrice = rs.getDouble("sellprice");
                         ShopType shopType = ShopType.valueOf(rs.getString("shoptype"));
 
-                        shops.add(new Shop(id, plugin, vendor, product, location, buyPrice, sellPrice, shopType));
+                        Shop newShop = new Shop(id, plugin, vendor, product, location, buyPrice, sellPrice, shopType);
+
+                        if (product.isConverted()) {
+                            plugin.debug("Shop had old ItemStack format and is now converted... (#" + id + ")");
+                            addShop(newShop, null);
+                            if (!broadcastOldFormat) {
+                                ShopChest.getInstance().getLogger().warning("An old ItemStack format was found in your database! All shops are now converted to the new format! This may take a while!");
+                                broadcastOldFormat = true;
+                            }
+                        }
+
+                        shops.add(newShop);
                     }
+
+                    if (broadcastOldFormat) ShopChest.getInstance().getLogger().warning("All shops are converted! It may take a while until all updates are written to your database. Please wait some time before stopping the server!"); 
 
                     if (callback != null) callback.callSyncResult(Collections.unmodifiableCollection(shops));
                 } catch (SQLException ex) {
@@ -304,8 +319,6 @@ public abstract class Database {
                 } finally {
                     close(ps, rs);
                 }
-
-
             }
         }.runTaskAsynchronously(plugin);
     }
