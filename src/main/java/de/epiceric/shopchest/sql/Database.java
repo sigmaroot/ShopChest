@@ -254,6 +254,7 @@ public abstract class Database {
             @Override
             public void run() {
                 boolean broadcastOldFormat = false;
+                int convertCounter = 0;
 
                 PreparedStatement ps = null;
                 ResultSet rs = null;
@@ -303,12 +304,16 @@ public abstract class Database {
                                 ShopChest.getInstance().getLogger().warning("An old ItemStack format was found in your database! All shops are now converted to the new format! This may take a while!");
                                 broadcastOldFormat = true;
                             }
+                            convertCounter++;
+                            if ((convertCounter % 100) == 0) {
+                                ShopChest.getInstance().getLogger().warning("100 more shops are converted! Please be patient...");
+                            }
                         }
 
                         shops.add(newShop);
                     }
 
-                    if (broadcastOldFormat) ShopChest.getInstance().getLogger().warning("All shops are converted! It may take a while until all updates are written to your database. Please wait some time before stopping the server!"); 
+                    if (broadcastOldFormat) ShopChest.getInstance().getLogger().warning(convertCounter + " shops are converted! It may take a while until all updates are written to your database. Please wait some time before stopping the server!"); 
 
                     if (callback != null) callback.callSyncResult(Collections.unmodifiableCollection(shops));
                 } catch (SQLException ex) {
