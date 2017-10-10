@@ -69,7 +69,15 @@ public class ShopUtils {
      * @return Copy of collection of all shops, may contain duplicates
      */
     public Collection<Shop> getShopsCopy() {
-        return new ArrayList<>(getShops());
+        Collection<Shop> result = new ArrayList<>();
+        try {
+            result = new ArrayList<>(getShops());
+        } catch (ConcurrentModificationException e) {
+            plugin.getLogger().severe("Failed to copy shops collection");
+            plugin.debug("Failed to copy shops collection");
+            plugin.debug(e);
+        }
+        return result;
     }
 
     /**
