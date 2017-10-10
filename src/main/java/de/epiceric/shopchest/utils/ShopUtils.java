@@ -406,7 +406,9 @@ public class ShopUtils {
         double holoDistSqr = Math.pow(plugin.getShopChestConfig().maximal_distance, 2);
         double itemDistSqr = Math.pow(plugin.getShopChestConfig().maximal_item_distance, 2);
 
-        for (Shop shop : getShops()) {
+        for (Shop shop : getShopsCopy()) {
+            // Skip update if the shop doesn't exist anymore or has been modified
+            if (!getShops().contains(shop))  continue;
             if (p.getLocation().getWorld().getName().equals(shop.getLocation().getWorld().getName())) {
                 double distSqr = shop.getLocation().distanceSquared(p.getLocation());
 
