@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -41,10 +42,12 @@ public class Utils {
         ItemMeta itemMeta2 = itemStack2.getItemMeta();
 
         if (itemMeta1 instanceof BookMeta && itemMeta2 instanceof BookMeta) {
+            Bukkit.getServer().broadcastMessage("Isn Buch!");
             BookMeta bookMeta1 = (BookMeta) itemStack1.getItemMeta();
             BookMeta bookMeta2 = (BookMeta) itemStack2.getItemMeta();
 
             if ((getMajorVersion() == 9 && getRevision() == 1) || getMajorVersion() == 8) {
+                Bukkit.getServer().broadcastMessage("mache hier");
                 CustomBookMeta.Generation generation1 = CustomBookMeta.getGeneration(itemStack1);
                 CustomBookMeta.Generation generation2 = CustomBookMeta.getGeneration(itemStack2);
 
@@ -52,15 +55,36 @@ public class Utils {
                 if (generation2 == null) CustomBookMeta.setGeneration(itemStack2, CustomBookMeta.Generation.ORIGINAL);
 
             } else if (getMajorVersion() >= 10) {
-                if (bookMeta1.getGeneration() == null) bookMeta1.setGeneration(BookMeta.Generation.ORIGINAL);
-                if (bookMeta2.getGeneration() == null) bookMeta2.setGeneration(BookMeta.Generation.ORIGINAL);
+                Bukkit.getServer().broadcastMessage("mache da");
+                if (bookMeta1.getGeneration() == null) {
+                    Bukkit.getServer().broadcastMessage("mache 1");
+                    bookMeta1.setGeneration(BookMeta.Generation.ORIGINAL);
+                }
+                if (bookMeta2.getGeneration() == null) {
+                    Bukkit.getServer().broadcastMessage("mache 2");
+                    bookMeta2.setGeneration(BookMeta.Generation.ORIGINAL);
+                }
             }
 
             itemStack1.setItemMeta(bookMeta1);
             itemStack2.setItemMeta(bookMeta2);
+            
+            itemStack1 = decode(encode(itemStack1));
+        }
+        
+        boolean testing = itemStack1.isSimilar(itemStack2);
+        
+        if (!testing) {
+            Bukkit.getServer().broadcastMessage("Isn't similar!");
+            net.minecraft.server.v1_12_R1.ItemStack cis1 = CraftItemStack.asNMSCopy(itemStack1);
+            net.minecraft.server.v1_12_R1.ItemStack cis2 = CraftItemStack.asNMSCopy(itemStack2);
+            Bukkit.getServer().broadcastMessage("NMS stack 1");
+            Bukkit.getServer().broadcastMessage(cis1.getTag().toString());
+            Bukkit.getServer().broadcastMessage("NMS stack 2");
+            Bukkit.getServer().broadcastMessage(cis2.getTag().toString());
         }
 
-        return itemStack1.isSimilar(itemStack2);
+        return testing;
     }
 
     /**
